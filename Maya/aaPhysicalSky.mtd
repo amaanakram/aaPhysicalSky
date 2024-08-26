@@ -1,0 +1,117 @@
+# aaPhysicalSky 0x00116401
+
+[node aaPhysicalSky]
+	maya.name STRING "aaPhysicalSky"
+	maya.id INT 0x00116401
+	maya.classification STRING "shader/environment"
+	maya.output_name STRING "outColor"
+	maya.output_shortname STRING "out"
+
+	[attr on]
+		# maya.name 			STRING 	"On"
+		default				BOOL 	True
+	[attr y_is_up]
+		# maya.name 			STRING 	"Y is UP"
+		default				BOOL 	True
+	[attr turbidity]
+		# maya.name 			STRING 	"Haze"
+		default             FLOAT   2.0
+	[attr sunDirX]
+		# maya.name 			STRING 	"Direction X"
+		default             FLOAT   0.0
+	[attr sunDirY]
+		# maya.name 			STRING 	"Direction Y"
+		default             FLOAT   1.0
+	[attr sunDirZ]
+		# maya.name 			STRING 	"Direction Z"
+		default             FLOAT   0.0
+	[attr multiplier]
+		# maya.name 			STRING 	"Multiplier"
+		default             FLOAT   1.0
+	[attr ground_color]
+		# maya.name           STRING  "color"
+	[attr horizon_height]
+		# maya.name 			STRING 	"Horizon Height"
+		default             FLOAT   0.0
+	[attr horizon_blur]
+		# maya.name 			STRING 	"Horizon Blur"
+		default             FLOAT   3.0
+	[attr sun_opacity]
+		# maya.name 			STRING 	"Opacity"
+		default             FLOAT   1.0
+	[attr sun_disk_scale]
+		# maya.name 			STRING 	"Size"
+		default             FLOAT   1.0
+	[attr sun_intensity]
+		# maya.name 			STRING 	"Intensity"
+		default             FLOAT   1.0
+	[attr multA]
+		# maya.name 			STRING 	"Horizon Brightness"
+		default             FLOAT   1.0
+	[attr multB]
+		# maya.name 			STRING 	"Horizon Luma"
+		default             FLOAT   0.5
+	[attr multC]
+		default             FLOAT   1.0
+	[attr multD]
+		# maya.name 			STRING 	"Sun Glow"
+		default             FLOAT   1.0
+	[attr multE]
+		# maya.name 			STRING 	"Back Scattering"
+		default             FLOAT   1.0
+	[attr saturation]
+		# maya.name 			STRING 	"Saturation"
+		default             FLOAT   1.0
+	[attr rayReflected]
+		# maya.name 			STRING 	"Reflection Rays"
+		default				BOOL 	True
+	[attr rayRefracted]
+		# maya.name 			STRING 	"Refraction Rays"
+		default				BOOL 	True
+	[attr rayDiffuse]
+		# maya.name 			STRING 	"Diffuse Rays"
+		default				BOOL 	True
+	[attr rayGlossy]
+		# maya.name 			STRING 	"Glossy Rays"
+		default				BOOL 	True
+	[attr rayCamera]
+		# maya.name 			STRING 	"Camera Rays"
+		default				BOOL 	True
+	[attr candelaConversion]
+		# maya.name 			STRING 	"Cd/m^2 Conversion"
+		default             FLOAT   100000.0
+	[attr maxVisibilityDistance]
+		# maya.name 			STRING 	"Max Visibility Distance"
+		default             FLOAT   500.0
+	[attr fogTransparency]
+		# maya.name 			STRING 	"Transparency"
+		default             FLOAT   0.0
+	[attr atmosDepth]
+		# maya.name 			STRING 	"Atmospheric Depth"
+		default             FLOAT   32000.0
+	[attr sunInscatter]
+		# maya.name 			STRING 	"Sun Scattering"
+		default             FLOAT   1.0
+	[attr skyInscatter]
+		# maya.name 			STRING 	"Sky Scattering"
+		default             FLOAT   1.0
+	[attr redBlueShift]
+		# maya.name 			STRING 	"Red-Blue Shift"
+		default             FLOAT   0.0
+	[attr tonemap]
+		# maya.name 			STRING 	"Tonemap"
+		default             FLOAT   0.0
+	[attr inScatterFade]
+		# maya.name 			STRING 	"Fade in In-scatter"
+		default             FLOAT   0.0
+	[attr attenuationFade]
+		# maya.name 			STRING 	"Fade out Attenuation"
+		default             FLOAT   0.0
+	[attr cieOvercast]
+		# default				BOOL 	True
+	[attr logSunIntensity]
+		# maya.name 			STRING 	"Log Sun Intensity in Console"
+		default				BOOL 	True
+	[attr cameraHeight]
+		# maya.name 			STRING 	"Camera Height"
+		default             FLOAT   1.0
