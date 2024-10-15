@@ -21,55 +21,55 @@
 #ifndef T2EXP_H
 #define T2EXP_H
 
-#ifdef  __cplusplus
-extern "C" {
-#endif/*__cplusplus*/
+#ifdef __cplusplus
+extern "C"
+{
+#endif /*__cplusplus*/
 
-/* --------------------------------------------------------------
-    Name:       t2exp
+    /* --------------------------------------------------------------
+        Name:       t2exp
 
-    Purpose:    Fast two table-driven exponent algorithm,
-                effective for arg <= 0.
+        Purpose:    Fast two table-driven exponent algorithm,
+                    effective for arg <= 0.
 
-    Usage:      t2exp (arg)
+        Usage:      t2exp (arg)
 
-    Domain:     Same as for standard exp() function
-                (approximately -709 <= arg <= 709).
+        Domain:     Same as for standard exp() function
+                    (approximately -709 <= arg <= 709).
 
-    Result:     Approximate exp of arg; if arg is outside the
-                exp() domain, results are same as for standard
-                exp() function - that is either 0 or INF.
--------------------------------------------------------------- */
+        Result:     Approximate exp of arg; if arg is outside the
+                    exp() domain, results are same as for standard
+                    exp() function - that is either 0 or INF.
+    -------------------------------------------------------------- */
 
-extern double t2exp  (double arg);
+    extern double t2exp(double arg);
 
+    /* --------------------------------------------------------------
+        Name:       t2expini
 
-/* --------------------------------------------------------------
-    Name:       t2expini
+        Purpose:    Build tables for t2exp().
 
-    Purpose:    Build tables for t2exp().
+        Usage:      t2expini()
 
-    Usage:      t2expini()
+        Note:       Used for development purposes only!
+    -------------------------------------------------------------- */
 
-    Note:       Used for development purposes only!
--------------------------------------------------------------- */
+    extern void t2expini(void);
 
-extern void t2expini (void);
+    /* --------------------------------------------------------------
+        Name:       t2expinl
 
-/* --------------------------------------------------------------
-    Name:       t2expinl
+        Purpose:    Print tables for t2exp() in format of file t2exp.inl.
 
-    Purpose:    Print tables for t2exp() in format of file t2exp.inl.
+        Usage:      t2expinl()
 
-    Usage:      t2expinl()
+        Note:       Used for development purposes only!
+    -------------------------------------------------------------- */
 
-    Note:       Used for development purposes only!
--------------------------------------------------------------- */
+    extern void t2expinl(void);
 
-extern void t2expinl (void);
-
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
-#endif/*__cplusplus*/
+#endif /*__cplusplus*/
 
-#endif/*T2EXP_H*/
+#endif /*T2EXP_H*/

@@ -28,104 +28,108 @@
 #ifndef FEXP_H
 #define FEXP_H
 
-#ifdef  __cplusplus
-extern "C" {
-#endif/*__cplusplus*/
-
-/* --------------------------------------------------------------
-    Structure and constants for fexp() function and macros.
--------------------------------------------------------------- */
-
-union eco
+#ifdef __cplusplus
+extern "C"
 {
-    double d;
-    struct {long i, j;} n;
-};
+#endif /*__cplusplus*/
 
-extern union eco _eco;
-extern const double _eco_m;
-extern const double _eco_a;
+    /* --------------------------------------------------------------
+        Structure and constants for fexp() function and macros.
+    -------------------------------------------------------------- */
 
-/* --------------------------------------------------------------
-    Name:       fexp
+    union eco
+    {
+        double d;
+        struct
+        {
+            long i, j;
+        } n;
+    };
 
-    Purpose:    11-bit precision exponent for Intel x86.
+    extern union eco _eco;
+    extern const double _eco_m;
+    extern const double _eco_a;
 
-    Usage:      fexp (arg)
+    /* --------------------------------------------------------------
+        Name:       fexp
 
-    Domain:     Same as for standard exp() function
-                (approximately -709 <= arg <= 709).
+        Purpose:    11-bit precision exponent for Intel x86.
 
-    Result:     Approximate exp of arg, if within domain,
-                otherwise undefined.
--------------------------------------------------------------- */
+        Usage:      fexp (arg)
 
-extern double fexp (double arg);
+        Domain:     Same as for standard exp() function
+                    (approximately -709 <= arg <= 709).
 
-/* --------------------------------------------------------------
-    Name:       RFEXP
+        Result:     Approximate exp of arg, if within domain,
+                    otherwise undefined.
+    -------------------------------------------------------------- */
 
-    Purpose:    ANSI compatible 11-bit precision exponent for
-                machines, which support IEEE-754 and store
-                least significant bit of integers first.
+    extern double fexp(double arg);
 
-    Usage:      RFEXP (arg)
+    /* --------------------------------------------------------------
+        Name:       RFEXP
 
-    Domain:     Same as for standard exp() function
-                (approximately -709 <= arg <= 709).
+        Purpose:    ANSI compatible 11-bit precision exponent for
+                    machines, which support IEEE-754 and store
+                    least significant bit of integers first.
 
-    Result:     Approximate exp of arg if within domain,
-                otherwise undefined.
--------------------------------------------------------------- */
+        Usage:      RFEXP (arg)
+
+        Domain:     Same as for standard exp() function
+                    (approximately -709 <= arg <= 709).
+
+        Result:     Approximate exp of arg if within domain,
+                    otherwise undefined.
+    -------------------------------------------------------------- */
 
 #define RFEXP(v) (_eco.n.j = (long)(_eco_m * (v) + _eco_a), _eco.d)
 
-/* --------------------------------------------------------------
-    Name:       LFEXP
+    /* --------------------------------------------------------------
+        Name:       LFEXP
 
-    Purpose:    ANSI compatible 11-bit precision exponent for
-                machines, which support IEEE-754 and store
-                the highest significant bit of integers first.
+        Purpose:    ANSI compatible 11-bit precision exponent for
+                    machines, which support IEEE-754 and store
+                    the highest significant bit of integers first.
 
-    Usage:      LFEXP (arg)
+        Usage:      LFEXP (arg)
 
-    Domain:     Same as for standard exp() function
-                (approximately -709 <= arg <= 709).
+        Domain:     Same as for standard exp() function
+                    (approximately -709 <= arg <= 709).
 
-    Result:     Approximate exp of arg if within domain,
-                otherwise undefined.
--------------------------------------------------------------- */
+        Result:     Approximate exp of arg if within domain,
+                    otherwise undefined.
+    -------------------------------------------------------------- */
 
 #define LFEXP(v) (_eco.n.i = (long)(_eco_m * (v) + _eco_a), _eco.d)
 
-/* --------------------------------------------------------------
-    Name:       USE_RFEXP
+    /* --------------------------------------------------------------
+        Name:       USE_RFEXP
 
-    Purpose:    Check if machine supports IEEE-754 and stores
-                the least significant bit of integers first.
+        Purpose:    Check if machine supports IEEE-754 and stores
+                    the least significant bit of integers first.
 
-    Usage:      USE_RFEXP()
+        Usage:      USE_RFEXP()
 
-    Result:     Non-zero value if yes, 0 if no.
--------------------------------------------------------------- */
+        Result:     Non-zero value if yes, 0 if no.
+    -------------------------------------------------------------- */
 
 #define USE_RFEXP (eco.d = 1.0, (eco.n.j - 1072693248L || eco.n.i == 0))
 
-/* --------------------------------------------------------------
-    Name:       USE_LFEXP
+    /* --------------------------------------------------------------
+        Name:       USE_LFEXP
 
-    Purpose:    Check if machine supports IEEE-754 and stores
-                the highest significant bit of integers first.
+        Purpose:    Check if machine supports IEEE-754 and stores
+                    the highest significant bit of integers first.
 
-    Usage:      USE_LFEXP()
+        Usage:      USE_LFEXP()
 
-    Result:     Non-zero value if yes, 0 if no.
--------------------------------------------------------------- */
+        Result:     Non-zero value if yes, 0 if no.
+    -------------------------------------------------------------- */
 
 #define USE_LFEXP (eco.d = 1.0, (eco.n.i == 1072693248L || eco.n.j == 0))
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
-#endif/*__cplusplus*/
+#endif /*__cplusplus*/
 
-#endif/*FEXP_H*/
+#endif /*FEXP_H*/

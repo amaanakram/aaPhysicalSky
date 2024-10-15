@@ -25,56 +25,53 @@
                 ftp://ftp.idsia.ch/pub/nic/exp.ps.gz
 -------------------------------------------------------------- */
 
-#include "fexp.h"       /* Header file for fexp() function */
+#include "fexp.h" /* Header file for fexp() function */
 
-#ifdef  __cplusplus
-extern "C" {
-#endif/*__cplusplus*/
-
-/* --------------------------------------------------------------
-    Structure and constants for fexp() function and macros.
--------------------------------------------------------------- */
-
-union eco _eco;
-const double _eco_m = (1048576L/0.693147180559945309417232121458177);
-const double _eco_a = (1072693248L - 60801L);
-
-/* --------------------------------------------------------------
-    Name:       fexp
-
-    Purpose:    11-bit precision exponent for Intel x86.
-
-    Usage:      fexp (arg)
-
-    Domain:     Same as for standard exp() function
-                (approximately -709 <= arg <= 709).
-
-    Result:     Approximate exp of arg, if within domain,
-                otherwise undefined.
--------------------------------------------------------------- */
-
-double fexp (double arg)
+#ifdef __cplusplus
+extern "C"
 {
-#ifdef  _MSC_VER
+#endif /*__cplusplus*/
 
-    #pragma warning(push)
-    #pragma warning(disable: 4410)
+    /* --------------------------------------------------------------
+        Structure and constants for fexp() function and macros.
+    -------------------------------------------------------------- */
 
-    __asm fld   _eco_m
-    __asm fmul  arg
-    __asm fadd  _eco_a
-    __asm fistp _eco.n.j
-    return _eco.d;
+    union eco _eco;
+    const double _eco_m = (1048576L / 0.693147180559945309417232121458177);
+    const double _eco_a = (1072693248L - 60801L);
 
-    #pragma warning(pop)
+    /* --------------------------------------------------------------
+        Name:       fexp
+
+        Purpose:    11-bit precision exponent for Intel x86.
+
+        Usage:      fexp (arg)
+
+        Domain:     Same as for standard exp() function
+                    (approximately -709 <= arg <= 709).
+
+        Result:     Approximate exp of arg, if within domain,
+                    otherwise undefined.
+    -------------------------------------------------------------- */
+
+    double fexp(double arg)
+    {
+#ifdef _MSC_VER
+
+#pragma warning(push)
+#pragma warning(disable : 4410)
+
+        __asm fld _eco_m __asm fmul arg __asm fadd _eco_a __asm fistp _eco.n.j return _eco.d;
+
+#pragma warning(pop)
 
 #else /*_MSC_VER*/
 
-    return RFEXP (arg);
+    return RFEXP(arg);
 
-#endif/*_MSC_VER*/
-}
+#endif /*_MSC_VER*/
+    }
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
-#endif/*__cplusplus*/
+#endif /*__cplusplus*/

@@ -8,7 +8,7 @@
 /* ----------------------------------------------- */
 
 ///////////////// HELPER DEFINES /////////////////
-#define EXP(x) t2exp(x) //faster exponental function than the standard exp(x), error rate seems acceptable
+#define EXP(x) t2exp(x) // faster exponental function than the standard exp(x), error rate seems acceptable
 
 #define CLAMP_TO_RANGE 1
 
@@ -19,8 +19,8 @@
 
 /////////// STANDARD CONSTANTS /////////////////
 static const Real aa_EPSILON = FLT_MIN;
-static const Real aa_PI		 = 3.14159265358979323846;
-static const Real aa_TWOPI	 = 6.28318530717958647692;
+static const Real aa_PI = 3.14159265358979323846;
+static const Real aa_TWOPI = 6.28318530717958647692;
 static const Real aa_PIBYTWO = 1.57079632679489661923;
 static const Real aa_180BYPI = 57.295779513082320876798154814105;
 static const Real aa_PIBY180 = 0.01745329251994329576922222222222;
@@ -29,10 +29,10 @@ static const Real aa_INV_PIBYTWO = 0.63661977236758134307607071493546;
 
 /////////////////////WAVELENGTH HELPER DEFINES///////////////////////////////
 
-static const int nTheta = 20;				// Number of bins for theta
-static const int nPhi	= 20;				// Number of bins for phi
-static const int wavelengths	 = 38;		// number to wavelengths to process, 380nm to 750nm
-static const int wavelengthDelta = 10;		// spacing of 10nm between wavelengths
+static const int nTheta = 20;          // Number of bins for theta
+static const int nPhi = 20;            // Number of bins for phi
+static const int wavelengths = 38;     // number to wavelengths to process, 380nm to 750nm
+static const int wavelengthDelta = 10; // spacing of 10nm between wavelengths
 /* ------------------------------------------------------------------------------ */
 
 ///////////// SSE/AVX intrinsics defines //////////////////////

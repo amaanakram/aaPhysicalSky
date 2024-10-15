@@ -11,60 +11,60 @@ AtVector cartesian_to_spherical_coords(const AtVector &cart_rayDir)
 	return v_spherical_coord_dir;
 }
 
-bool isVisible(AtNode*& node, AtShaderGlobals*& sg)
+bool isVisible(AtNode *&node, AtShaderGlobals *&sg)
 {
 	// ToDo: currently not working for sg->Ci
 
 	bool result = 1;
-	if(!AiShaderEvalParamBool(p_on))
+	if (!AiShaderEvalParamBool(p_on))
 		result = 0;
 
 	// ray type checks for visibility
-	if(sg->Rt == AI_RAY_CAMERA	&&	!AiShaderEvalParamBool(p_ray_camera))
-	{	
+	if (sg->Rt == AI_RAY_CAMERA && !AiShaderEvalParamBool(p_ray_camera))
+	{
 		sg->out.RGBA() = AI_RGBA_ZERO;
 		result = 0;
 	}
-	if(sg->Rt == AI_RAY_SPECULAR_REFLECT	&&	!AiShaderEvalParamBool(p_ray_reflected))
+	if (sg->Rt == AI_RAY_SPECULAR_REFLECT && !AiShaderEvalParamBool(p_ray_reflected))
 		result = 0;
-	if(sg->Rt == AI_RAY_SPECULAR_TRANSMIT	&&	!AiShaderEvalParamBool(p_ray_refracted))
+	if (sg->Rt == AI_RAY_SPECULAR_TRANSMIT && !AiShaderEvalParamBool(p_ray_refracted))
 		result = 0;
-	if(sg->Rt == AI_RAY_ALL_DIFFUSE		&&	!AiShaderEvalParamBool(p_ray_diffuse))
+	if (sg->Rt == AI_RAY_ALL_DIFFUSE && !AiShaderEvalParamBool(p_ray_diffuse))
 		result = 0;
-	if(sg->Rt == AI_RAY_ALL_SPECULAR		&&	!AiShaderEvalParamBool(p_ray_glossy))
+	if (sg->Rt == AI_RAY_ALL_SPECULAR && !AiShaderEvalParamBool(p_ray_glossy))
 		result = 0;
 
 	return result;
 }
 
-f_inline void attenuateSky(spectrum& attenuation, physicalSky *&skyPtr, Real user_t)
+f_inline void attenuateSky(spectrum &attenuation, physicalSky *&skyPtr, Real user_t)
 {
-	Real t = RadsToDegs(skyPtr->thetaSun); 
-	t = rescale(t, 60.0, 90.0, 0.0, 1.0, CLAMP_TO_RANGE); 
+	Real t = RadsToDegs(skyPtr->thetaSun);
+	t = rescale(t, 60.0, 90.0, 0.0, 1.0, CLAMP_TO_RANGE);
 	clamp(user_t, 0.00001, 1.0); // not good
 	t = minimum(t, user_t);
 	clamp(t, 0.0, 1.0);
 	attenuation.lerp(t, skyPtr->specOne);
 }
 
-f_inline void dusk(AtRGB& skyRadianceRGB, physicalSky *&skyPtr)
+f_inline void dusk(AtRGB &skyRadianceRGB, physicalSky *&skyPtr)
 {
 	Real t = RadsToDegs(skyPtr->thetaSun); // do all in radians eventually, and move to node_update
-	t = rescale(t, 90.0, 96.0, 1.0, 0.0, CLAMP_TO_RANGE); 
+	t = rescale(t, 90.0, 96.0, 1.0, 0.0, CLAMP_TO_RANGE);
 	skyRadianceRGB *= t;
 }
 
-AtRGB getVolumeEffects(physicalSky *&skyPtr, AtRGB& skyRadianceRGB, AtRGB& volumeRGB, AtShaderGlobals*& sg)
+AtRGB getVolumeEffects(physicalSky *&skyPtr, AtRGB &skyRadianceRGB, AtRGB &volumeRGB, AtShaderGlobals *&sg)
 {
 	AtRGB result;
-	AtRGB unoccluded_color = AtRGB(1.0f, 0.0f, 0.2f); //sg->Ci;
-	if(sg->sc == AI_CONTEXT_VOLUME)
+	AtRGB unoccluded_color = AtRGB(1.0f, 0.0f, 0.2f); // sg->Ci;
+	if (sg->sc == AI_CONTEXT_VOLUME)
 	{
 		// check for no-hit
-		if(sg->Rl >= AI_BIG  || sg->Rl > far_clip)
+		if (sg->Rl >= AI_BIG || sg->Rl > far_clip)
 			result = skyRadianceRGB;
 		// check for completely transparent fog
-		else if(skyPtr->fogTransparency >= 1.0f)
+		else if (skyPtr->fogTransparency >= 1.0f)
 			result = unoccluded_color;
 		else
 		{
@@ -72,12 +72,12 @@ AtRGB getVolumeEffects(physicalSky *&skyPtr, AtRGB& skyRadianceRGB, AtRGB& volum
 			// clamp raylength to be up to max visibility distance
 			clamp(rayl, 0.0, skyPtr->maxVisibilityDistance);
 			rayl = rescale(rayl, 0.0, skyPtr->maxVisibilityDistance, 0.0, 1.0, CLAMP_TO_RANGE);
-			
+
 			// fog out completely beyond maxVisibilityDistance
-			volumeRGB = AiLerp(rayl, unoccluded_color, volumeRGB); 
+			volumeRGB = AiLerp(rayl, unoccluded_color, volumeRGB);
 
 			// Transparency: when completey transparent (1.0), return unoccluded_color, if 0.0, return inScatter, lerp otherwise
-			result = AiLerp(skyPtr->fogTransparency, volumeRGB, unoccluded_color); 
+			result = AiLerp(skyPtr->fogTransparency, volumeRGB, unoccluded_color);
 		}
 	}
 	else
@@ -95,12 +95,12 @@ inline Real tonemap_helper(Real x)
 	const float D = 0.20;
 	const float E = 0.02;
 	const float F = 0.30;
-	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+	return ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;
 }
 
-f_inline AtRGB tonemap(AtRGB& inColor, Real t)
+f_inline AtRGB tonemap(AtRGB &inColor, Real t)
 {
-	if(t == 0.0f)
+	if (t == 0.0f)
 		return inColor;
 	else
 	{
@@ -108,7 +108,7 @@ f_inline AtRGB tonemap(AtRGB& inColor, Real t)
 		xyY _xyY = XYZtoxyY(_XYZ);
 
 		float ExposureBias = 2.0f;
-		float curr = tonemap_helper(ExposureBias*_xyY.Y);
+		float curr = tonemap_helper(ExposureBias * _xyY.Y);
 
 		const float W = 11.2;
 		float whiteScale = 1.0f / tonemap_helper(W);
@@ -125,11 +125,11 @@ f_inline AtRGB tonemap(AtRGB& inColor, Real t)
 
 f_inline AtRGB applySaturation(AtRGB &in, Real saturation)
 {
-	if(saturation == 1.0)
+	if (saturation == 1.0)
 		return in;
 
 	AtRGB result;
-	Real r,g,b;
+	Real r, g, b;
 	Real h, s, v;
 	RGBtoHSV(in.r, in.g, in.b, &h, &s, &v);
 	s *= saturation;
@@ -140,14 +140,14 @@ f_inline AtRGB applySaturation(AtRGB &in, Real saturation)
 	return result;
 }
 
-f_inline void fadeInScatter(Real fade, AtRGB& skyRadianceRGB, AtRGB& inScatterRGB)
+f_inline void fadeInScatter(Real fade, AtRGB &skyRadianceRGB, AtRGB &inScatterRGB)
 {
-	if(fade > 0.0f)
+	if (fade > 0.0f)
 	{
 		clamp(fade, 0.0, 1.0);
 		skyRadianceRGB = AiLerp(fade, skyRadianceRGB, inScatterRGB);
 	}
-	if( fade == 1.0f)
+	if (fade == 1.0f)
 		skyRadianceRGB = inScatterRGB;
 }
 #endif // ARNOLDSHADERFUNCS_H

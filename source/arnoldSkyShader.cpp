@@ -3,10 +3,9 @@
 #include <algorithm>
 #include <cstddef> // for std::size_t if needed elsewhere
 #include <iostream>
-#include <cmath> 
+#include <cmath>
 
 #include "physicalSkyClass.h"
-
 
 static float far_clip; // camera far clipping distance
 
@@ -55,43 +54,43 @@ enum
 
 node_parameters
 {
-    AiParameterBool( "on"                   , 1);
-    AiParameterBool( "y_is_up"              , 1);
-	AiParameterFlt ( "turbidity"			, 5.0f);
-	AiParameterFlt ( "sun_dir_x"			, 0.0f);
-	AiParameterFlt ( "sun_dir_y"			, 0.0f);
-	AiParameterFlt ( "sun_dir_z"			, 0.0f);
-	AiParameterFlt ( "multiplier"			, 1.0f);
-	AiParameterRGBA( "ground_color"			, 0.2f, 0.2f, 0.2f, 1.0f);
-	AiParameterFlt ( "horizon_height"		, 0.0f);
-	AiParameterFlt ( "horizon_blur"			, 0.1f);
-	AiParameterFlt ( "sun_opacity"			, 1.0f);
-	AiParameterFlt ( "sun_disk_scale"		, 1.0f);
-	AiParameterFlt ( "sun_intensity"		, 10.0f);
-	AiParameterFlt ( "mult_a"				, 1.0f);
-	AiParameterFlt ( "mult_b"				, 1.0f);
-	AiParameterFlt ( "mult_c"				, 1.0f);
-	AiParameterFlt ( "mult_d"				, 1.0f);
-	AiParameterFlt ( "mult_e"				, 1.0f);
-	AiParameterFlt ( "saturation"			, 1.0f);
-	AiParameterBool( "ray_reflected"		, 1);
-	AiParameterBool( "ray_refracted"		, 1);
-	AiParameterBool( "ray_diffuse"			, 1);
-	AiParameterBool( "ray_glossy"			, 1);
-	AiParameterBool( "ray_camera"			, 1);
-	AiParameterFlt ( "candela_conversion"	, 100000.0f);
-	AiParameterFlt ( "max_visibility_distance", 500.0f);
-	AiParameterFlt ( "fog_transparency"		, 0.0f);
-	AiParameterFlt ( "atmos_depth"			, 1.0f);
-	AiParameterFlt ( "sun_inscatter"		, 1.0f);
-	AiParameterFlt ( "sky_inscatter"		, 1.0f);
-	AiParameterFlt ( "red_blue_shift"		, 0.0f);
-	AiParameterFlt ( "tonemap"				, 0.0f);
-	AiParameterFlt ( "inscatter_fade"		, 0.0f);
-	AiParameterFlt ( "attenuation_fade"		, 0.0f);
-	AiParameterBool( "cie_overcast"			, 0);
-	AiParameterBool( "log_sun_intensity"	, 0);
-	AiParameterFlt ( "camera_height"		, 1.0f);
+	AiParameterBool("on", 1);
+	AiParameterBool("y_is_up", 1);
+	AiParameterFlt("turbidity", 5.0f);
+	AiParameterFlt("sun_dir_x", 0.0f);
+	AiParameterFlt("sun_dir_y", 0.0f);
+	AiParameterFlt("sun_dir_z", 0.0f);
+	AiParameterFlt("multiplier", 1.0f);
+	AiParameterRGBA("ground_color", 0.2f, 0.2f, 0.2f, 1.0f);
+	AiParameterFlt("horizon_height", 0.0f);
+	AiParameterFlt("horizon_blur", 0.1f);
+	AiParameterFlt("sun_opacity", 1.0f);
+	AiParameterFlt("sun_disk_scale", 1.0f);
+	AiParameterFlt("sun_intensity", 10.0f);
+	AiParameterFlt("mult_a", 1.0f);
+	AiParameterFlt("mult_b", 1.0f);
+	AiParameterFlt("mult_c", 1.0f);
+	AiParameterFlt("mult_d", 1.0f);
+	AiParameterFlt("mult_e", 1.0f);
+	AiParameterFlt("saturation", 1.0f);
+	AiParameterBool("ray_reflected", 1);
+	AiParameterBool("ray_refracted", 1);
+	AiParameterBool("ray_diffuse", 1);
+	AiParameterBool("ray_glossy", 1);
+	AiParameterBool("ray_camera", 1);
+	AiParameterFlt("candela_conversion", 100000.0f);
+	AiParameterFlt("max_visibility_distance", 500.0f);
+	AiParameterFlt("fog_transparency", 0.0f);
+	AiParameterFlt("atmos_depth", 1.0f);
+	AiParameterFlt("sun_inscatter", 1.0f);
+	AiParameterFlt("sky_inscatter", 1.0f);
+	AiParameterFlt("red_blue_shift", 0.0f);
+	AiParameterFlt("tonemap", 0.0f);
+	AiParameterFlt("inscatter_fade", 0.0f);
+	AiParameterFlt("attenuation_fade", 0.0f);
+	AiParameterBool("cie_overcast", 0);
+	AiParameterBool("log_sun_intensity", 0);
+	AiParameterFlt("camera_height", 1.0f);
 }
 
 #include "arnoldShaderFunctions.h"
@@ -99,83 +98,81 @@ node_parameters
 node_initialize
 {
 	physicalSky *skyPtr = new physicalSky;
-	AiNodeSetLocalData(node,skyPtr);
+	AiNodeSetLocalData(node, skyPtr);
 	AiMsgInfo("[aaPhysicalSky] Allocated sky data");
 }
 
 node_update
 {
-	//physicalSky *skyPtr = (physicalSky *)AiNodeGetLocalData(node);
-
-    
+	// physicalSky *skyPtr = (physicalSky *)AiNodeGetLocalData(node);
 }
 
 shader_evaluate
 {
 	// evaluate ray visibility
-	if(!isVisible(node, sg))
+	if (!isVisible(node, sg))
 		return;
 
 	physicalSky *skyPtr = (physicalSky *)AiNodeGetLocalData(node);
 
-	if(skyPtr->is_init == false)
+	if (skyPtr->is_init == false)
 	{
 		skyPtr->my_mutex.lock();
 
-		if(skyPtr->is_init == false)
+		if (skyPtr->is_init == false)
 		{
-			bool    _y_is_up  = AiShaderEvalParamBool(p_y_is_up);
-			Real	_turbidity =  AiShaderEvalParamFlt(p_turbidity);
-			Real	_multA = AiShaderEvalParamFlt(p_mult_a);
-			Real	_multB = AiShaderEvalParamFlt(p_mult_b);
-			Real	_multC = AiShaderEvalParamFlt(p_mult_c);
-			Real	_multD = AiShaderEvalParamFlt(p_mult_d);
-			Real	_multE = AiShaderEvalParamFlt(p_mult_e);
-			AtRGBA	_ground_color = AiShaderEvalParamRGBA(p_ground_color);
-			Real	_multiplier = AiShaderEvalParamFlt(p_multiplier);
-			Real	_horizon_blur = AiShaderEvalParamFlt(p_horizon_blur);
-			Real	_sun_opacity = AiShaderEvalParamFlt(p_sun_opacity);
-			Real	_sun_intensity = AiShaderEvalParamFlt(p_sun_intensity);
-			Real	_sun_disk_scale = AiShaderEvalParamFlt(p_sun_disk_scale);
-			Real	_saturation = AiShaderEvalParamFlt(p_saturation);
-			Real	_horizon_height = AiShaderEvalParamFlt(p_horizon_height);
-			Real	_candelaConversion = AiShaderEvalParamFlt(p_candela_conversion);
-			Real	_maxVisibilityDistance = AiShaderEvalParamFlt(p_max_visibility_distance);
-			Real	_fogTransparency = AiShaderEvalParamFlt(p_fog_transparency);
-			Real	_atmosDepth = AiShaderEvalParamFlt(p_atmos_depth);
-			Real	_sunInscatter = AiShaderEvalParamFlt(p_sun_inscatter);
-			Real	_skyInscatter = AiShaderEvalParamFlt(p_sky_inscatter);
-			Real	_redBlueShift = AiShaderEvalParamFlt(p_red_blue_shift);
-			bool	_cieOvercast  = AiShaderEvalParamBool(p_cie_overcast);
+			bool _y_is_up = AiShaderEvalParamBool(p_y_is_up);
+			Real _turbidity = AiShaderEvalParamFlt(p_turbidity);
+			Real _multA = AiShaderEvalParamFlt(p_mult_a);
+			Real _multB = AiShaderEvalParamFlt(p_mult_b);
+			Real _multC = AiShaderEvalParamFlt(p_mult_c);
+			Real _multD = AiShaderEvalParamFlt(p_mult_d);
+			Real _multE = AiShaderEvalParamFlt(p_mult_e);
+			AtRGBA _ground_color = AiShaderEvalParamRGBA(p_ground_color);
+			Real _multiplier = AiShaderEvalParamFlt(p_multiplier);
+			Real _horizon_blur = AiShaderEvalParamFlt(p_horizon_blur);
+			Real _sun_opacity = AiShaderEvalParamFlt(p_sun_opacity);
+			Real _sun_intensity = AiShaderEvalParamFlt(p_sun_intensity);
+			Real _sun_disk_scale = AiShaderEvalParamFlt(p_sun_disk_scale);
+			Real _saturation = AiShaderEvalParamFlt(p_saturation);
+			Real _horizon_height = AiShaderEvalParamFlt(p_horizon_height);
+			Real _candelaConversion = AiShaderEvalParamFlt(p_candela_conversion);
+			Real _maxVisibilityDistance = AiShaderEvalParamFlt(p_max_visibility_distance);
+			Real _fogTransparency = AiShaderEvalParamFlt(p_fog_transparency);
+			Real _atmosDepth = AiShaderEvalParamFlt(p_atmos_depth);
+			Real _sunInscatter = AiShaderEvalParamFlt(p_sun_inscatter);
+			Real _skyInscatter = AiShaderEvalParamFlt(p_sky_inscatter);
+			Real _redBlueShift = AiShaderEvalParamFlt(p_red_blue_shift);
+			bool _cieOvercast = AiShaderEvalParamBool(p_cie_overcast);
 
 			AtVector v_sunDir;
-			v_sunDir.x	= AiShaderEvalParamFlt(p_sun_dir_x);
-			v_sunDir.y	= AiShaderEvalParamFlt(p_sun_dir_y);
-			v_sunDir.z	= AiShaderEvalParamFlt(p_sun_dir_z);
-			if(v_sunDir.x == 0.0f && v_sunDir.y == 0.0f && v_sunDir.z == 0.0f)
+			v_sunDir.x = AiShaderEvalParamFlt(p_sun_dir_x);
+			v_sunDir.y = AiShaderEvalParamFlt(p_sun_dir_y);
+			v_sunDir.z = AiShaderEvalParamFlt(p_sun_dir_z);
+			if (v_sunDir.x == 0.0f && v_sunDir.y == 0.0f && v_sunDir.z == 0.0f)
 				v_sunDir.y = 1.0;
 
 			// scale sun vector to match horizon height GUI control
 			v_sunDir = AiV3Normalize(v_sunDir);
 
-			//z axis is up in spherical coords
+			// z axis is up in spherical coords
 			v_sunDir = cartesian_to_spherical_coords(v_sunDir);
 			if (!_y_is_up)
 			{
-			Real y = v_sunDir.y;
-			v_sunDir.y = v_sunDir.z;
-			v_sunDir.z = y;
+				Real y = v_sunDir.y;
+				v_sunDir.y = v_sunDir.z;
+				v_sunDir.z = y;
 			}
 
 			// Turbidity forced to start from 2.0
 			// See "A Critical Review of the Preetham Skylight Model"
 			// by Georg Zotti, Alexander Wilkie, Werner Purgathofer
 			// http://wscg.zcu.cz/WSCG2007/Papers_2007/short/E59-full.pdf
-			if(_turbidity < skyPtr->maxTurbidity)
+			if (_turbidity < skyPtr->maxTurbidity)
 				_turbidity = skyPtr->maxTurbidity;
 
-			//attenuate sky horizon brightness to fix pink band near horizon when sun is high in sky
-			// does not work with Turbidity values lower than 2.0
+			// attenuate sky horizon brightness to fix pink band near horizon when sun is high in sky
+			//  does not work with Turbidity values lower than 2.0
 			Real sunZ = v_sunDir.z;
 			sunZ = std::clamp(sunZ, 0.0, 1.0);
 			_multB = rescale(_multB, 0.0, 1.0, 0.45, 0.0, CLAMP_TO_RANGE);
@@ -183,30 +180,30 @@ shader_evaluate
 
 			// shared variables access
 			skyPtr->skyInput(_turbidity,
-							v_sunDir,
-							_multA,
-							_multB,
-							_multC,
-							_multD,
-							_multE,
-							_ground_color,
-							_multiplier,
-							_horizon_height,
-							_horizon_blur,
-							_sun_opacity,
-							_sun_intensity,
-							_sun_disk_scale,
-							_saturation,
-							_candelaConversion,
-							_maxVisibilityDistance,
-							_fogTransparency,
-							_atmosDepth,
-							_sunInscatter,
-							_skyInscatter,
-							_redBlueShift,
-							_cieOvercast);
+							 v_sunDir,
+							 _multA,
+							 _multB,
+							 _multC,
+							 _multD,
+							 _multE,
+							 _ground_color,
+							 _multiplier,
+							 _horizon_height,
+							 _horizon_blur,
+							 _sun_opacity,
+							 _sun_intensity,
+							 _sun_disk_scale,
+							 _saturation,
+							 _candelaConversion,
+							 _maxVisibilityDistance,
+							 _fogTransparency,
+							 _atmosDepth,
+							 _sunInscatter,
+							 _skyInscatter,
+							 _redBlueShift,
+							 _cieOvercast);
 
-			if(AiShaderEvalParamBool(p_log_sun_intensity))
+			if (AiShaderEvalParamBool(p_log_sun_intensity))
 			{
 				AtRGB sunColor = skyPtr->pSun.sunLightCol * skyPtr->candelaConversion * skyPtr->multiplier * skyPtr->sun_intensity;
 				AiMsgWarning("[aaPhysicalSky] Sunlight color -- Red: %f, Green: %f, Blue: %f", sunColor.r, sunColor.g, sunColor.b);
@@ -228,16 +225,16 @@ shader_evaluate
 	direction = cartesian_to_spherical_coords(direction);
 	if (!AiShaderEvalParamBool(p_y_is_up))
 	{
-	  Real y = direction.y;
-	  direction.y = direction.z;
-	  direction.z = y;
+		Real y = direction.y;
+		direction.y = direction.z;
+		direction.z = y;
 	}
-	skyPtr->computeAngles(phiv,thetav,direction);
+	skyPtr->computeAngles(phiv, thetav, direction);
 
 	// Atmospheric Depth
-	const Real s = 32000.0; 
+	const Real s = 32000.0;
 	// Height above ground, inverted for fog control
-	const Real h0 = -1.0 * AiShaderEvalParamFlt(p_camera_height);    
+	const Real h0 = -1.0 * AiShaderEvalParamFlt(p_camera_height);
 
 	// set up directions to fetch sky radiance
 	AtVector skyDir = direction;
@@ -246,19 +243,19 @@ shader_evaluate
 	// get sky radiance
 	spectrum skyRadiance = skyPtr->getSkySpectralRadiance(skyDir);
 	// get inscattered light in to the viewing direction
-	spectrum inScatter = skyPtr->ap_InscatteredRadiance(h0, s, direction); 
+	spectrum inScatter = skyPtr->ap_InscatteredRadiance(h0, s, direction);
 	// convert spectrums to RGB
 	AtRGB inScatterRGB = inScatter.toRGB();
 	inScatter *= (1.0 - skyPtr->fogTransparency);
-	
+
 	// Horizon attenuation
 	// Don't apply attenuation spectrum if cieOvercast is On
-	if(!AiShaderEvalParamBool(p_cie_overcast))
+	if (!AiShaderEvalParamBool(p_cie_overcast))
 	{
 		spectrum attenuation = skyPtr->ap_ExtinctionFactor(h0, s, direction);
 		// change attenuation spectrum based on sun position
 		attenuateSky(attenuation, skyPtr, (1.0 - AiShaderEvalParamFlt(p_attenuation_fade)));
-		skyRadiance	*= attenuation;
+		skyRadiance *= attenuation;
 		skyRadiance += inScatter;
 	}
 	else
@@ -268,71 +265,61 @@ shader_evaluate
 		_xyY.x = skyPtr->overcastWhitePoint_D65_x;
 		_xyY.y = skyPtr->overcastWhitePoint_D65_x;
 		xyYtoRGB(_xyY, inScatterRGB);
-		skyRadiance	+= inScatter;
+		skyRadiance += inScatter;
 	}
 
 	// convert spectrums to RGB
 	AtRGB skyRadianceRGB = skyRadiance.toRGB();
 
-	if (std::isnan(skyRadianceRGB.r)) 
+	if (std::isnan(skyRadianceRGB.r))
 	{
-        std::cout << "The value is NaN" << std::endl;
-    } 
+		std::cout << "The value is NaN" << std::endl;
+	}
 
 	// fade in inScatter
 	fadeInScatter(AiShaderEvalParamFlt(p_inscatter_fade), skyRadianceRGB, inScatterRGB);
 
-	
-
 	// apply transparency to inScatter
-	AtRGB inScatterTRGB	= inScatterRGB * (1.0 - skyPtr->fogTransparency);
+	AtRGB inScatterTRGB = inScatterRGB * (1.0 - skyPtr->fogTransparency);
 
-	
-	
 	// add sun and ground
 	skyPtr->addGround(skyRadianceRGB, inScatterTRGB, direction);
 	skyPtr->addSun(skyRadianceRGB, inScatterTRGB, direction);
 
-	
 	// do the candela conversions, and also check for user-defined multiplier
-	inScatterRGB   *= skyPtr->candelaConversion * skyPtr->multiplier;
+	inScatterRGB *= skyPtr->candelaConversion * skyPtr->multiplier;
 	skyRadianceRGB *= skyPtr->candelaConversion * skyPtr->multiplier;
 
 	skyRadianceRGB = getVolumeEffects(skyPtr, skyRadianceRGB, inScatterRGB, sg);
-
-	
 
 	// fade sky based on sun's position below/near horizon
 	// allow for about 6 degrees below horizon of light
 	dusk(skyRadianceRGB, skyPtr);
 
-	//apply saturation control
+	// apply saturation control
 	skyRadianceRGB = applySaturation(skyRadianceRGB, skyPtr->saturation);
 
 	// tonemap
 	skyRadianceRGB = tonemap(skyRadianceRGB, AiShaderEvalParamFlt(p_tonemap));
 
-	
-
 	sg->out.RGB() = skyRadianceRGB;
-
 }
 
 node_finish
 {
-	delete ( physicalSky*)AiNodeGetLocalData(node);
+	delete (physicalSky *)AiNodeGetLocalData(node);
 	AiMsgInfo("[aaPhysicalSky] Deallocated sky data");
 }
 
 node_loader
 {
-   if (i > 0)
-      return false;
+	if (i > 0)
+		return false;
 
-   node->methods      = aaPhysicalSkyMethods;
-   node->output_type  = AI_TYPE_RGB;
-   node->name         = "aaPhysicalSky";
-   node->node_type    = AI_NODE_SHADER;
-   strcpy(node->version, AI_VERSION);
-   return true;
+	node->methods = aaPhysicalSkyMethods;
+	node->output_type = AI_TYPE_RGB;
+	node->name = "aaPhysicalSky";
+	node->node_type = AI_NODE_SHADER;
+	strcpy(node->version, AI_VERSION);
+	return true;
 }
