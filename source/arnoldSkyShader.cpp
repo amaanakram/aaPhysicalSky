@@ -271,11 +271,6 @@ shader_evaluate
 	// convert spectrums to RGB
 	AtRGB skyRadianceRGB = skyRadiance.toRGB();
 
-	if (std::isnan(skyRadianceRGB.r))
-	{
-		std::cout << "The value is NaN" << std::endl;
-	}
-
 	// fade in inScatter
 	fadeInScatter(AiShaderEvalParamFlt(p_inscatter_fade), skyRadianceRGB, inScatterRGB);
 
