@@ -128,8 +128,8 @@ static const float nmult12 = (- (long) MULT1 * MULT2);
 
 double t2exp (double arg)
 {
-    register long i1;                   /* Components of arg */
-    register int  i2;                   /* Components of arg */
+    long i1;                   /* Components of arg */
+    int  i2;                   /* Components of arg */
 
     /* Extract valid bits to integer variable */
 

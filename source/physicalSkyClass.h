@@ -32,6 +32,8 @@ using namespace std;
 class physicalSky
 {
 public:
+	AtMutex my_mutex;
+	bool is_init;
 	
 	Real T;				// turbitidy
 	bool cieOvercast;	// sky model
@@ -114,7 +116,7 @@ public:
 	void initZenith();
 	void sunDiscClamp(); // clamps the solar disc's intensity in the sky to make it easier to sample
 	inline void computeAngles(Real& phi, Real& theta, const AtVector& v_dir);
-	Real perez(AtLong x, Real gamma, Real theta, Real cosTheta, Real cos2gamma);
+	Real perez(int64_t x, Real gamma, Real theta, Real cosTheta, Real cos2gamma);
 
 	// Aerial Perspective functions
 	void ap_createConstants();
@@ -128,9 +130,9 @@ public:
 	// -----------------Per-sample functions follow-----------------
 
 	// Adds horizon/ground 
-	void addGround(AtColor &skyCol, AtColor &, const AtVector &v_camDir);
+	void addGround(AtRGB &skyCol, AtRGB &, const AtVector &v_camDir);
 	// Adds sun in the sky
-	void addSun(AtColor &, AtColor &, AtVector &gamma);
+	void addSun(AtRGB &, AtRGB &, AtVector &gamma);
 	// Main output function. This should be called to get colour of the sky per-sample of an environment shader
 	// Output in candels / m^2
 	spectrum getSkySpectralRadiance(AtVector &v_dir);
@@ -159,6 +161,7 @@ physicalSky::physicalSky()
 	zenith.z = azimuth.x = 1.0;
 	overcastWhitePoint_D65_x = 0.3127f;
 	overcastWhitePoint_D65_y = 0.3291f;
+	is_init = false;
 }
 
 physicalSky::~physicalSky()
@@ -362,7 +365,7 @@ void physicalSky::initZenith()
 	chromaShift(zenith_x, zenith_y, redBlueShift);
 }
 
-Real physicalSky::perez(AtLong x, Real gamma, Real theta, Real cosTheta, Real cos2gamma)
+Real physicalSky::perez(int64_t x, Real gamma, Real theta, Real cosTheta, Real cos2gamma)
 {
 	Real A, B, C, D, E;
 	if(x == 1)
@@ -422,13 +425,13 @@ spectrum physicalSky::getSkySpectralRadiance(AtVector &v_dir)
 	return result; 
 }
 
-void physicalSky::addGround(AtColor &skyCol, AtColor &inScatterCol, const AtVector &v_camDir)
+void physicalSky::addGround(AtRGB &skyCol, AtRGB &inScatterCol, const AtVector &v_camDir)
 {
 	if(ground_color.a == 0.0f)
 		return;
 
-	AtColor skyOriginal = skyCol;
-	AtColor grdColor;
+	AtRGB skyOriginal = skyCol;
+	AtRGB grdColor;
 	grdColor.r = ground_color.r +  inScatterCol.r;
 	grdColor.g = ground_color.g +  inScatterCol.g;
 	grdColor.b = ground_color.b +  inScatterCol.b;
@@ -438,18 +441,18 @@ void physicalSky::addGround(AtColor &skyCol, AtColor &inScatterCol, const AtVect
 
 	//set up horizon vector
 	AtVector v_h = v_camDir;
-	AiV3Normalize(v_h,v_camDir);
+	v_h = AiV3Normalize(v_camDir);
 	v_h.z = horizon_height * -0.1; // for better UI control
-	AiV3Normalize(v_h,v_h);
+	v_h = AiV3Normalize(v_h);
 
 	//set up two vectors to point at horizon upper and lower blur limits
 	AtVector v_h_blur_lower = v_h;
 	v_h_blur_lower.z -= horizon_blur;
-	AiV3Normalize(v_h_blur_lower,v_h_blur_lower);
+	v_h_blur_lower = AiV3Normalize(v_h_blur_lower);
 	
 	AtVector v_h_blur_uppper = v_h;
 	v_h_blur_uppper.z += horizon_blur;
-	AiV3Normalize(v_h_blur_uppper,v_h_blur_uppper);
+	v_h_blur_uppper = AiV3Normalize(v_h_blur_uppper);
 
 	//check if current camera vector is pointing
 	//somewhere in the upper and lower horizon blur region
@@ -465,7 +468,7 @@ void physicalSky::addGround(AtColor &skyCol, AtColor &inScatterCol, const AtVect
 	//add ground
 	//do cross product to check for flipping ground direction
 	AtVector v_cross;
-	AiV3Cross(v_cross, v_camDir, v_h_blur_lower);
+	v_h_blur_lower = AiV3Cross(v_cross, v_camDir);
 	if(v_camDir.x > 0.0)
 	{
 		if(v_cross.y < 0.0 )
@@ -477,11 +480,11 @@ void physicalSky::addGround(AtColor &skyCol, AtColor &inScatterCol, const AtVect
 			skyCol = grdColor;
 	}
 	if(ground_color.a < 1.0)
-		AiColorLerp(skyCol, ground_color.a, skyOriginal, skyCol);
+		skyCol = AiLerp( ground_color.a, skyOriginal, skyCol);
 
 }
 
-void physicalSky::addSun(AtColor &skyCol, AtColor &inScatterCol,  AtVector &v_dir)
+void physicalSky::addSun(AtRGB &skyCol, AtRGB &inScatterCol,  AtVector &v_dir)
 {
 	if(v_dir.z < 0.0 || cieOvercast) // sample ray going below horizon, or if overcast
 		return;
@@ -503,7 +506,7 @@ void physicalSky::addSun(AtColor &skyCol, AtColor &inScatterCol,  AtVector &v_di
 
 		Real opacity = minimum(sun_opacity, blurSun);
 
-		AiColorLerp(skyCol, opacity, skyCol, pSun.sunDiscCol * sun_intensity * limbDarkening);
+		skyCol = AiLerp(opacity, skyCol, (pSun.sunDiscCol * sun_intensity * limbDarkening));
 	}
 }
 
@@ -549,13 +552,13 @@ void physicalSky::ap_createConstants()
 
 spectrum physicalSky::ap_ExtinctionFactor(const Real h0, const Real s, AtVector& v_dir)
 {
-	register Real theta, phi;
+	Real theta, phi;
 	computeAngles(phi,theta,v_dir);
-	register Real cosTheta = fabs(v_dir.z); // fabs to prevent negative theta, and hence negative attenuation below horizon
-    register Real B_1 = alpha_1 * cosTheta;
-    register Real B_2 = alpha_2 * cosTheta;
-    register Real constTerm_1 = EXP(-alpha_1 * h0) * EvalFunc(B_1, s);
-    register Real constTerm_2 = EXP(-alpha_2 * h0) * EvalFunc(B_2, s);
+	Real cosTheta = fabs(v_dir.z); // fabs to prevent negative theta, and hence negative attenuation below horizon
+    Real B_1 = alpha_1 * cosTheta;
+    Real B_2 = alpha_2 * cosTheta;
+    Real constTerm_1 = EXP(-alpha_1 * h0) * EvalFunc(B_1, s);
+    Real constTerm_2 = EXP(-alpha_2 * h0) * EvalFunc(B_2, s);
   
 	constTerm_1 = -constTerm_1;
 	constTerm_2 = -constTerm_2;
@@ -570,9 +573,9 @@ spectrum physicalSky::ap_ExtinctionFactor(const Real h0, const Real s, AtVector&
 
 spectrum physicalSky::ap_InscatteredRadiance(const Real h0, const Real s, AtVector &v_dir) 
 {
-	register Real theta, phi;
+	Real theta, phi;
 	computeAngles(phi,theta,v_dir);
-	register Real cosTheta = v_dir.z; 
+	Real cosTheta = v_dir.z; 
 
 	// to skip simpler approximation to avoid thin line near horizon
 	if(fabs(cosTheta) < 0.001) 
@@ -583,19 +586,19 @@ spectrum physicalSky::ap_InscatteredRadiance(const Real h0, const Real s, AtVect
 			cosTheta = -0.001;
 	}
 
-    register Real aCosTheta_1 = alpha_1 * cosTheta;
-    register Real aCosTheta_2 = alpha_2 * cosTheta;
-	register Real inv_aCosTheta_1 = 1.0 / aCosTheta_1;
-    register Real inv_aCosTheta_2 = 1.0 / aCosTheta_2;
+    Real aCosTheta_1 = alpha_1 * cosTheta;
+    Real aCosTheta_2 = alpha_2 * cosTheta;
+	Real inv_aCosTheta_1 = 1.0 / aCosTheta_1;
+    Real inv_aCosTheta_2 = 1.0 / aCosTheta_2;
     spectrum I_1, I_2;
   
 	GetS0fromTable(theta, phi, I_1, I_2);
 
     // Analytical approximation
-    register Real A,B,C,D,H1,H2,K;
+    Real A,B,C,D,H1,H2,K;
     Real u_f1, u_i1,u_f2, u_i2, int_f, int_i, fs, fdashs, fdash0;
     Real a1,b1,a2,b2;
-    register Real den1, den2;
+    Real den1, den2;
 	Real hsc = h0 + s * cosTheta;
     b1 = u_f1 = EXP(-alpha_1 * hsc);
     H1 = a1 = u_i1 = EXP(-alpha_1 * h0);
@@ -668,7 +671,7 @@ void physicalSky::ap_CalculateS0(Real thetav, Real phiv, spectrum &S0_1, spectru
 	Real delTheta = RadsToDegs(aa_PI / 2.0 / nTheta);	//  9 degrees
     Real delPhi   = RadsToDegs(aa_PI / nPhi);			// 18 degrees
 	const Real delThetaPhi = delTheta * delPhi;
-	register Real theta, phi, psi, mul1, mul2;
+	Real theta, phi, psi, mul1, mul2;
 	AtVector zenith_dir = zenith;
 	AtVector sample_dir = zenith;
 

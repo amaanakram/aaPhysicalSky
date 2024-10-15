@@ -4,7 +4,7 @@
 // Using part of Optix sun and absorption spectral data instead of Preetham's for convenience
 // Preetham's data has inconsistent units between wavelengths and sun spectral radiance
 
-ALIGN(BOUNDARY) struct PreethamData  // in micrometer
+struct alignas(BOUNDARY) PreethamData  // in micrometer
 {
 	ALIGN(BOUNDARY) Real wavelength;
 	ALIGN(BOUNDARY) Real sun_spectral_radiance;

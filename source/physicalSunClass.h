@@ -26,8 +26,8 @@ public:
 	Real sunSolidAngle;
 	AtVector v_sunDir;  // sun direction vector
 	Real T;				// Turbidity for sunlight attenuation
-	AtColor sunLightCol;	// colour for light shader
-	AtColor sunDiscCol;	// colour for drawing sun disc
+	AtRGB sunLightCol;	// colour for light shader
+	AtRGB sunDiscCol;	// colour for drawing sun disc
 	Real candelaConversion;			// not used
 	spectrum sunlightAttenuated;	// final sunlight spectrum on earth's surface
 

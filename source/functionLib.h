@@ -88,9 +88,9 @@ f_inline Real EvalFunc(Real alpha_CosTheta, Real x) // from Smits
 
 f_inline Real Helper1(Real A, Real B, Real C, Real D, Real H, Real K, Real u)
 {
-	register Real u2 = u * u;
-	register Real K2 = 1.0 / (K * K);
-	register Real inv_K = 1.0 / K;
+	Real u2 = u * u;
+	Real K2 = 1.0 / (K * K);
+	Real inv_K = 1.0 / K;
 
 	Real t = EXP(-K*(H-u));
     return (t * inv_K) * ((A * u * u2 + B * u2 + C * u + D) -
@@ -102,18 +102,18 @@ f_inline Real Helper1(Real A, Real B, Real C, Real D, Real H, Real K, Real u)
 inline void CalculateABCD(Real a, Real b, Real c, Real d, Real e,
 			    Real den, Real &A, Real &B, Real &C, Real &D)
 {
-	register Real inv_den = 1.0 / den;
-	register Real a3 = a * a * a;
-	register Real a2 = a * a;
-	register Real b3 = b * b * b;
-	register Real b2 = b * b;
-	register Real bd = b * d;
-	register Real ab = a * b;
-	register Real ad = a * d;
-	register Real ae = a * e;
-	register Real _3a = 3.0 * a;
-	register Real _3b = 3.0 * b;
-	register Real _6ab = 6.0 * ab;
+	Real inv_den = 1.0 / den;
+	Real a3 = a * a * a;
+	Real a2 = a * a;
+	Real b3 = b * b * b;
+	Real b2 = b * b;
+	Real bd = b * d;
+	Real ab = a * b;
+	Real ad = a * d;
+	Real ae = a * e;
+	Real _3a = 3.0 * a;
+	Real _3b = 3.0 * b;
+	Real _6ab = 6.0 * ab;
 
     A = (-bd - 2.0 + c + c + ae - b * e + ad) * inv_den;
 

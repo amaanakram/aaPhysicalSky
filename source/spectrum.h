@@ -3,11 +3,11 @@
 
 #include "colour.h"
 
-ALIGN(BOUNDARY) class spectrum
+class alignas(BOUNDARY) spectrum
 {
 public:
 	// spectral data array
-	ALIGN(BOUNDARY) Real data[wavelengths];
+	alignas(BOUNDARY) Real data[wavelengths];
 
 	// constructors
 	spectrum();
@@ -43,7 +43,7 @@ public:
 	f_inline void exponentSpectrum();
 	f_inline XYZ toXYZ();
 	f_inline xyY toxyY();
-	f_inline AtColor toRGB();
+	f_inline AtRGB toRGB();
 };
 
 spectrum::spectrum()
@@ -389,10 +389,10 @@ f_inline xyY spectrum::toxyY()
 	return _xyY;
 }
 
-f_inline AtColor spectrum::toRGB()
+f_inline AtRGB spectrum::toRGB()
 {
 	XYZ _XYZ = toXYZ();
-	AtColor result = XYZtoRGB(_XYZ);
+	AtRGB result = XYZtoRGB(_XYZ);
 	return result;
 }
 

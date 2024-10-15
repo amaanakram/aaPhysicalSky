@@ -11,7 +11,8 @@
 // www.cie.co.at/publ/abst/datatables15_2004/y10.txt
 // www.cie.co.at/publ/abst/datatables15_2004/z10.txt
 
-static const ALIGN(BOUNDARY) Real cie_table[41][7] =
+
+static const Real cie_table[41][7] =
 {//lamda	x2bar		y2bar		z2bar		x10bar		y10bar		z10bar
 {380,		0.001368,	0.000039,	0.006450,	0.000160,	0.000017,	0.000705},
 {390,		0.004243,	0.000120,	0.020050,	0.002362,	0.000253,	0.010482},
@@ -56,7 +57,7 @@ static const ALIGN(BOUNDARY) Real cie_table[41][7] =
 {780,		0.000042,	0.000015,	0.000000,	0.000033,	0.000013,	0.000000}
 };
 
-ALIGN(BOUNDARY) struct XYZ
+struct alignas(BOUNDARY) XYZ
 {
 	Real X,Y,Z;
 
@@ -64,7 +65,7 @@ ALIGN(BOUNDARY) struct XYZ
     XYZ(Real _X, Real _Y, Real _Z) : X(_X), Y(_Y), Z(_Z) {}
 };
 
-ALIGN(BOUNDARY) struct xyY
+struct alignas(BOUNDARY) xyY
 {
 	Real x,y,Y;
 
@@ -72,7 +73,7 @@ ALIGN(BOUNDARY) struct xyY
     xyY(Real _x, Real _y, Real _Y) : x(_x), y(_y), Y(_Y) {}
 };
 
-ALIGN(BOUNDARY) struct xyz
+struct alignas(BOUNDARY) xyz
 {
 	Real x,y,z;
 
@@ -80,7 +81,7 @@ ALIGN(BOUNDARY) struct xyz
     xyz(Real _x, Real _y, Real _z) : x(_x), y(_y), z(_z) {}
 };
 
-f_inline void clampRGB(AtColor& dest)
+void clampRGB(AtRGB& dest)
 {
 	if(dest.r < aa_EPSILON)
 		dest.r = 0.0;
@@ -90,12 +91,12 @@ f_inline void clampRGB(AtColor& dest)
 		dest.b = 0.0;
 }
 
-inline AtColor XYZtoRGB(const XYZ &_XYZ)
+f_inline AtRGB XYZtoRGB(const XYZ &_XYZ)
 {
 	// CIE  XYZ into RGB using sRGB primaries and D65 white point
 	// http://www.poynton.com/notes/colour_and_gamma/ColorFAQ.html
 	// see "How do I transform between CIE  XYZ and a particular set of RGB primaries?"
-	AtColor dest;
+	AtRGB dest;
 	dest.r =  3.2404542f * _XYZ.X - 1.5371385f * _XYZ.Y - 0.4985314f * _XYZ.Z;
 	dest.g = -0.9692660f * _XYZ.X + 1.8760108f * _XYZ.Y + 0.0415560f * _XYZ.Z;
 	dest.b =  0.0556434f * _XYZ.X - 0.2040259f * _XYZ.Y + 1.0572252f * _XYZ.Z;	
@@ -104,7 +105,7 @@ inline AtColor XYZtoRGB(const XYZ &_XYZ)
 	return dest;
 }
 
-inline XYZ RGBtoXYZ(AtColor color)
+XYZ RGBtoXYZ(AtRGB color)
 {
 	XYZ result;
 	result.X = 0.4124564 * color.r +  0.3575761 * color.g + 0.1804375 * color.b;
@@ -113,7 +114,7 @@ inline XYZ RGBtoXYZ(AtColor color)
 	return result;
 }
 
-f_inline void xyYtoXYZ( const xyY &src, XYZ &dest )
+void xyYtoXYZ( const xyY &src, XYZ &dest )
 {
 	if(src.y > aa_EPSILON)
 	{
@@ -125,7 +126,7 @@ f_inline void xyYtoXYZ( const xyY &src, XYZ &dest )
 		dest.X = dest.Y = dest.Z = 0.0;
 }
 
-f_inline xyY XYZtoxyY( const XYZ &src)
+xyY XYZtoxyY( const XYZ &src)
 {
 	xyY _xyY;
 	Real XYZ = (src.X + src.Y + src.Z);
@@ -138,7 +139,7 @@ f_inline xyY XYZtoxyY( const XYZ &src)
 	return _xyY;
 }
 
-f_inline void xyYtoRGB( const xyY &src, AtColor &dest)
+void xyYtoRGB( const xyY &src, AtRGB &dest)
 {
 	XYZ _XYZ;
 	xyYtoXYZ(src, _XYZ);
@@ -157,8 +158,8 @@ xyz XYZtoxyz(XYZ& _XYZ)
 void RGBtoHSV(const Real r,const Real g,const Real b, Real *h, Real *s, Real *v )
 {
 	Real min, max, delta;
-	min = MIN3( r, g, b );
-	max = MAX3( r, g, b );
+	min = AiMin( r, g, b );
+	max = AiMax( r, g, b );
 	*v = max;
 	delta = max - min;
 	if( max != 0 )
@@ -229,7 +230,6 @@ void HSVtoRGB( Real *r, Real *g, Real *b, Real h, Real s, Real v )
 			break;
 	}
 }
-
 
 void chromaShift(Real& zen_x, Real& zen_y, Real t)
 {

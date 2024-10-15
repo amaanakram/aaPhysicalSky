@@ -22,16 +22,16 @@ bool isVisible(AtNode*& node, AtShaderGlobals*& sg)
 	// ray type checks for visibility
 	if(sg->Rt == AI_RAY_CAMERA	&&	!AiShaderEvalParamBool(p_ray_camera))
 	{	
-		sg->out_opacity = AI_RGB_BLACK;
+		sg->out.RGBA() = AI_RGBA_ZERO;
 		result = 0;
 	}
-	if(sg->Rt == AI_RAY_REFLECTED	&&	!AiShaderEvalParamBool(p_ray_reflected))
+	if(sg->Rt == AI_RAY_SPECULAR_REFLECT	&&	!AiShaderEvalParamBool(p_ray_reflected))
 		result = 0;
-	if(sg->Rt == AI_RAY_REFRACTED	&&	!AiShaderEvalParamBool(p_ray_refracted))
+	if(sg->Rt == AI_RAY_SPECULAR_TRANSMIT	&&	!AiShaderEvalParamBool(p_ray_refracted))
 		result = 0;
-	if(sg->Rt == AI_RAY_DIFFUSE		&&	!AiShaderEvalParamBool(p_ray_diffuse))
+	if(sg->Rt == AI_RAY_ALL_DIFFUSE		&&	!AiShaderEvalParamBool(p_ray_diffuse))
 		result = 0;
-	if(sg->Rt == AI_RAY_GLOSSY		&&	!AiShaderEvalParamBool(p_ray_glossy))
+	if(sg->Rt == AI_RAY_ALL_SPECULAR		&&	!AiShaderEvalParamBool(p_ray_glossy))
 		result = 0;
 
 	return result;
@@ -47,16 +47,17 @@ f_inline void attenuateSky(spectrum& attenuation, physicalSky *&skyPtr, Real use
 	attenuation.lerp(t, skyPtr->specOne);
 }
 
-f_inline void dusk(AtColor& skyRadianceRGB, physicalSky *&skyPtr)
+f_inline void dusk(AtRGB& skyRadianceRGB, physicalSky *&skyPtr)
 {
 	Real t = RadsToDegs(skyPtr->thetaSun); // do all in radians eventually, and move to node_update
 	t = rescale(t, 90.0, 96.0, 1.0, 0.0, CLAMP_TO_RANGE); 
 	skyRadianceRGB *= t;
 }
 
-AtColor getVolumeEffects(physicalSky *&skyPtr, AtColor& skyRadianceRGB, AtColor& volumeRGB, AtShaderGlobals*& sg)
+AtRGB getVolumeEffects(physicalSky *&skyPtr, AtRGB& skyRadianceRGB, AtRGB& volumeRGB, AtShaderGlobals*& sg)
 {
-	AtColor result;
+	AtRGB result;
+	AtRGB unoccluded_color = AtRGB(1.0f, 0.0f, 0.2f); //sg->Ci;
 	if(sg->sc == AI_CONTEXT_VOLUME)
 	{
 		// check for no-hit
@@ -64,7 +65,7 @@ AtColor getVolumeEffects(physicalSky *&skyPtr, AtColor& skyRadianceRGB, AtColor&
 			result = skyRadianceRGB;
 		// check for completely transparent fog
 		else if(skyPtr->fogTransparency >= 1.0f)
-			result = sg->Ci;
+			result = unoccluded_color;
 		else
 		{
 			Real rayl = sg->Rl;
@@ -73,10 +74,10 @@ AtColor getVolumeEffects(physicalSky *&skyPtr, AtColor& skyRadianceRGB, AtColor&
 			rayl = rescale(rayl, 0.0, skyPtr->maxVisibilityDistance, 0.0, 1.0, CLAMP_TO_RANGE);
 			
 			// fog out completely beyond maxVisibilityDistance
-			AiColorLerp(volumeRGB, rayl, sg->Ci, volumeRGB); 
+			volumeRGB = AiLerp(rayl, unoccluded_color, volumeRGB); 
 
-			// Transparency: when completey transparent (1.0), return sg->Ci, if 0.0, return inScatter, lerp otherwise
-			AiColorLerp(result, skyPtr->fogTransparency, volumeRGB, sg->Ci); 
+			// Transparency: when completey transparent (1.0), return unoccluded_color, if 0.0, return inScatter, lerp otherwise
+			result = AiLerp(skyPtr->fogTransparency, volumeRGB, unoccluded_color); 
 		}
 	}
 	else
@@ -97,7 +98,7 @@ inline Real tonemap_helper(Real x)
 	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
 }
 
-f_inline AtColor tonemap(AtColor& inColor, Real t)
+f_inline AtRGB tonemap(AtRGB& inColor, Real t)
 {
 	if(t == 0.0f)
 		return inColor;
@@ -113,21 +114,21 @@ f_inline AtColor tonemap(AtColor& inColor, Real t)
 		float whiteScale = 1.0f / tonemap_helper(W);
 		_xyY.Y = curr * whiteScale;
 
-		AtColor result;
+		AtRGB result;
 		xyYtoRGB(_xyY, result);
 
 		clamp(t, 0.0, 1.0);
-		AiColorLerp(result, t, inColor, result);
+		result = AiLerp(t, inColor, result);
 		return result;
 	}
 }
 
-f_inline AtColor applySaturation(AtColor &in, Real saturation)
+f_inline AtRGB applySaturation(AtRGB &in, Real saturation)
 {
 	if(saturation == 1.0)
 		return in;
 
-	AtColor result;
+	AtRGB result;
 	Real r,g,b;
 	Real h, s, v;
 	RGBtoHSV(in.r, in.g, in.b, &h, &s, &v);
@@ -139,12 +140,12 @@ f_inline AtColor applySaturation(AtColor &in, Real saturation)
 	return result;
 }
 
-f_inline void fadeInScatter(Real fade, AtColor& skyRadianceRGB, AtColor& inScatterRGB)
+f_inline void fadeInScatter(Real fade, AtRGB& skyRadianceRGB, AtRGB& inScatterRGB)
 {
 	if(fade > 0.0f)
 	{
 		clamp(fade, 0.0, 1.0);
-		AiColorLerp(skyRadianceRGB, fade, skyRadianceRGB, inScatterRGB);
+		skyRadianceRGB = AiLerp(fade, skyRadianceRGB, inScatterRGB);
 	}
 	if( fade == 1.0f)
 		skyRadianceRGB = inScatterRGB;
