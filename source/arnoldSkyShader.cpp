@@ -66,7 +66,7 @@ node_parameters
 	AiParameterFlt("horizon_blur", 0.1f);
 	AiParameterFlt("sun_opacity", 1.0f);
 	AiParameterFlt("sun_disk_scale", 1.0f);
-	AiParameterFlt("sun_intensity", 10.0f);
+	AiParameterFlt("sun_intensity", 1.0f);
 	AiParameterFlt("mult_a", 1.0f);
 	AiParameterFlt("mult_b", 1.0f);
 	AiParameterFlt("mult_c", 1.0f);
