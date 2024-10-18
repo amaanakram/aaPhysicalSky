@@ -502,20 +502,18 @@ void physicalSky::addSun(AtRGB &skyCol, AtRGB &inScatterCol, AtVector &v_dir)
 	if (v_dir.z < 0.0 || cieOvercast) // sample ray going below horizon, or if overcast
 		return;
 
-	// physically correct sun size in radians = 0.5
-	const Real sunSize = DegsToRads(0.5) * sun_disk_scale;
-	Real gamma = AiV3Dot(v_dir, v_sunDir);
-	clamp(gamma, -1.0, 1.0);
-	gamma = acos(gamma);
-	const Real halfGamma = 0.5 * gamma;
+	Real cos_theta_sun = cos(0.00463);         // Cosine of the Sun's angular radius
+	AtVector v_dir_norm = AiV3Normalize(v_dir);
+	AtVector v_sun_dir_norm = AiV3Normalize(v_sunDir);
+	Real dot_prod = AiV3Dot(v_sun_dir_norm, v_dir_norm);
+	const Real half_dot = dot_prod * 0.5;
 
-	if (halfGamma < sunSize)
+	if (dot_prod >= cos_theta_sun) 
 	{
-		// multiplier to darken edges of the sun
-		Real limbDarkening = pow(rescale(halfGamma, 0.0, sunSize, 1.0, 0.6), 0.5);
+		Real limbDarkening = pow(rescale(half_dot * 0.5, 0.0, cos_theta_sun, 1.0, 0.6), 0.5);
 
 		// lerp factor to blend between sky and sun
-		Real blurSun = pow(rescale(halfGamma, 0.0, sunSize, 1.0, 0.0), 0.35);
+		Real blurSun = pow(rescale(half_dot, 0.0, cos_theta_sun, 1.0, 0.0), 0.35);
 
 		Real opacity = minimum(sun_opacity, blurSun);
 
