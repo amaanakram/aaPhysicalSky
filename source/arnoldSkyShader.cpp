@@ -104,7 +104,99 @@ node_initialize
 
 node_update
 {
-	// physicalSky *skyPtr = (physicalSky *)AiNodeGetLocalData(node);
+	physicalSky *skyPtr = (physicalSky *)AiNodeGetLocalData(node);
+	AtVector v_sunDir;
+
+	v_sunDir.x 		= AiNodeGetFlt(node, "sun_dir_x");
+	v_sunDir.y 		= AiNodeGetFlt(node, "sun_dir_y");
+	v_sunDir.z 		= AiNodeGetFlt(node, "sun_dir_z");
+	bool _y_is_up 	= AiNodeGetBool(node, "y_is_up");
+	Real _turbidity = AiNodeGetFlt(node, "turbidity");
+	Real _multA 	= AiNodeGetFlt(node, "mult_a");
+	Real _multB 	= AiNodeGetFlt(node, "mult_b");
+	Real _multC 	= AiNodeGetFlt(node, "mult_c");
+	Real _multD 	= AiNodeGetFlt(node, "mult_d");
+	Real _multE 	= AiNodeGetFlt(node, "mult_e");
+	Real _multiplier 	 = AiNodeGetFlt(node, "multiplier");
+	Real _horizon_blur 	 = AiNodeGetFlt(node, "horizon_blur");
+	Real _sun_opacity 	 = AiNodeGetFlt(node, "sun_opacity");
+	Real _sun_intensity  = AiNodeGetFlt(node, "sun_intensity");
+	Real _sun_disk_scale = AiNodeGetFlt(node, "sun_disk_scale");
+	Real _saturation	 = AiNodeGetFlt(node, "saturation");
+	Real _horizon_height = AiNodeGetFlt(node, "horizon_height");
+	Real _candelaConversion = AiNodeGetFlt(node, "candela_conversion");
+	Real _maxVisibilityDistance = AiNodeGetFlt(node, "max_visibility_distance");
+	Real _fogTransparency = AiNodeGetFlt(node, "fog_transparency");
+	Real _atmosDepth 	  = AiNodeGetFlt(node, "atmos_depth");
+	Real _sunInscatter 	  = AiNodeGetFlt(node, "sun_inscatter");
+	Real _skyInscatter 	  = AiNodeGetFlt(node, "sky_inscatter");
+	Real _redBlueShift 	  = AiNodeGetFlt(node, "red_blue_shift");
+	bool _cieOvercast 	  = AiNodeGetBool(node, "cie_overcast");
+	AtRGBA _ground_color = AiNodeGetRGBA(node, "ground_color");
+	
+	
+	if (v_sunDir.x == 0.0f && v_sunDir.y == 0.0f && v_sunDir.z == 0.0f)
+		v_sunDir.y = 1.0;
+
+	// scale sun vector to match horizon height GUI control
+	v_sunDir = AiV3Normalize(v_sunDir);
+
+	// z axis is up in spherical coords
+	v_sunDir = cartesian_to_spherical_coords(v_sunDir);
+	if (!_y_is_up)
+	{
+		Real y = v_sunDir.y;
+		v_sunDir.y = v_sunDir.z;
+		v_sunDir.z = y;
+	}
+
+	// Turbidity forced to start from 2.0
+	// See "A Critical Review of the Preetham Skylight Model"
+	// by Georg Zotti, Alexander Wilkie, Werner Purgathofer
+	// http://wscg.zcu.cz/WSCG2007/Papers_2007/short/E59-full.pdf
+	if (_turbidity < skyPtr->maxTurbidity)
+		_turbidity = skyPtr->maxTurbidity;
+
+	// attenuate sky horizon brightness to fix pink band near horizon when sun is high in sky
+	//  does not work with Turbidity values lower than 2.0
+	Real sunZ = v_sunDir.z;
+	sunZ = std::clamp(sunZ, 0.0, 1.0);
+	_multB = rescale(_multB, 0.0, 1.0, 0.45, 0.0, CLAMP_TO_RANGE);
+	_multB = rescale(sunZ, 0.0, 1.0, 1.0, 0.55, CLAMP_TO_RANGE) + _multB;
+
+	// shared variables access
+	skyPtr->skyInput(_turbidity,
+						v_sunDir,
+						_multA,
+						_multB,
+						_multC,
+						_multD,
+						_multE,
+						_ground_color,
+						_multiplier,
+						_horizon_height,
+						_horizon_blur,
+						_sun_opacity,
+						_sun_intensity,
+						_sun_disk_scale,
+						_saturation,
+						_candelaConversion,
+						_maxVisibilityDistance,
+						_fogTransparency,
+						_atmosDepth,
+						_sunInscatter,
+						_skyInscatter,
+						_redBlueShift,
+						_cieOvercast);
+
+		if(AiNodeGetBool(node, "log_sun_intensity"))
+		{
+			AtRGB sunColor = skyPtr->pSun.sunLightCol * skyPtr->candelaConversion * skyPtr->multiplier * skyPtr->sun_intensity;
+			AiMsgWarning("[aaPhysicalSky] Sunlight color -- Red: %f, Green: %f, Blue: %f", sunColor.r, sunColor.g, sunColor.b);
+		}
+
+		far_clip = AiNodeGetFlt(AiUniverseGetCamera(AiNodeGetUniverse(node)), "far_clip");
+		skyPtr->is_init = true;
 }
 
 shader_evaluate
@@ -114,106 +206,6 @@ shader_evaluate
 		return;
 
 	physicalSky *skyPtr = (physicalSky *)AiNodeGetLocalData(node);
-
-	if (skyPtr->is_init == false)
-	{
-		skyPtr->my_mutex.lock();
-
-		if (skyPtr->is_init == false)
-		{
-			bool _y_is_up = AiShaderEvalParamBool(p_y_is_up);
-			Real _turbidity = AiShaderEvalParamFlt(p_turbidity);
-			Real _multA = AiShaderEvalParamFlt(p_mult_a);
-			Real _multB = AiShaderEvalParamFlt(p_mult_b);
-			Real _multC = AiShaderEvalParamFlt(p_mult_c);
-			Real _multD = AiShaderEvalParamFlt(p_mult_d);
-			Real _multE = AiShaderEvalParamFlt(p_mult_e);
-			AtRGBA _ground_color = AiShaderEvalParamRGBA(p_ground_color);
-			Real _multiplier = AiShaderEvalParamFlt(p_multiplier);
-			Real _horizon_blur = AiShaderEvalParamFlt(p_horizon_blur);
-			Real _sun_opacity = AiShaderEvalParamFlt(p_sun_opacity);
-			Real _sun_intensity = AiShaderEvalParamFlt(p_sun_intensity);
-			Real _sun_disk_scale = AiShaderEvalParamFlt(p_sun_disk_scale);
-			Real _saturation = AiShaderEvalParamFlt(p_saturation);
-			Real _horizon_height = AiShaderEvalParamFlt(p_horizon_height);
-			Real _candelaConversion = AiShaderEvalParamFlt(p_candela_conversion);
-			Real _maxVisibilityDistance = AiShaderEvalParamFlt(p_max_visibility_distance);
-			Real _fogTransparency = AiShaderEvalParamFlt(p_fog_transparency);
-			Real _atmosDepth = AiShaderEvalParamFlt(p_atmos_depth);
-			Real _sunInscatter = AiShaderEvalParamFlt(p_sun_inscatter);
-			Real _skyInscatter = AiShaderEvalParamFlt(p_sky_inscatter);
-			Real _redBlueShift = AiShaderEvalParamFlt(p_red_blue_shift);
-			bool _cieOvercast = AiShaderEvalParamBool(p_cie_overcast);
-
-			AtVector v_sunDir;
-			v_sunDir.x = AiShaderEvalParamFlt(p_sun_dir_x);
-			v_sunDir.y = AiShaderEvalParamFlt(p_sun_dir_y);
-			v_sunDir.z = AiShaderEvalParamFlt(p_sun_dir_z);
-			if (v_sunDir.x == 0.0f && v_sunDir.y == 0.0f && v_sunDir.z == 0.0f)
-				v_sunDir.y = 1.0;
-
-			// scale sun vector to match horizon height GUI control
-			v_sunDir = AiV3Normalize(v_sunDir);
-
-			// z axis is up in spherical coords
-			v_sunDir = cartesian_to_spherical_coords(v_sunDir);
-			if (!_y_is_up)
-			{
-				Real y = v_sunDir.y;
-				v_sunDir.y = v_sunDir.z;
-				v_sunDir.z = y;
-			}
-
-			// Turbidity forced to start from 2.0
-			// See "A Critical Review of the Preetham Skylight Model"
-			// by Georg Zotti, Alexander Wilkie, Werner Purgathofer
-			// http://wscg.zcu.cz/WSCG2007/Papers_2007/short/E59-full.pdf
-			if (_turbidity < skyPtr->maxTurbidity)
-				_turbidity = skyPtr->maxTurbidity;
-
-			// attenuate sky horizon brightness to fix pink band near horizon when sun is high in sky
-			//  does not work with Turbidity values lower than 2.0
-			Real sunZ = v_sunDir.z;
-			sunZ = std::clamp(sunZ, 0.0, 1.0);
-			_multB = rescale(_multB, 0.0, 1.0, 0.45, 0.0, CLAMP_TO_RANGE);
-			_multB = rescale(sunZ, 0.0, 1.0, 1.0, 0.55, CLAMP_TO_RANGE) + _multB;
-
-			// shared variables access
-			skyPtr->skyInput(_turbidity,
-							 v_sunDir,
-							 _multA,
-							 _multB,
-							 _multC,
-							 _multD,
-							 _multE,
-							 _ground_color,
-							 _multiplier,
-							 _horizon_height,
-							 _horizon_blur,
-							 _sun_opacity,
-							 _sun_intensity,
-							 _sun_disk_scale,
-							 _saturation,
-							 _candelaConversion,
-							 _maxVisibilityDistance,
-							 _fogTransparency,
-							 _atmosDepth,
-							 _sunInscatter,
-							 _skyInscatter,
-							 _redBlueShift,
-							 _cieOvercast);
-
-			if (AiShaderEvalParamBool(p_log_sun_intensity))
-			{
-				AtRGB sunColor = skyPtr->pSun.sunLightCol * skyPtr->candelaConversion * skyPtr->multiplier * skyPtr->sun_intensity;
-				AiMsgWarning("[aaPhysicalSky] Sunlight color -- Red: %f, Green: %f, Blue: %f", sunColor.r, sunColor.g, sunColor.b);
-			}
-
-			far_clip = 30000; // AiNodeGetFlt(AiUniverseGetCamera(), "far_clip");
-			skyPtr->is_init = true;
-		}
-		skyPtr->my_mutex.unlock();
-	}
 
 	// scale view vector to match horizon height GUI control
 	AtVector direction = sg->Rd;
