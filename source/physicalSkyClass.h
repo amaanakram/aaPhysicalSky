@@ -250,7 +250,9 @@ void physicalSky::reinit(Real turbidity, AtVector &sunDir)
 	initZenith();
 	ap_createConstants();
 	ap_InitS0();
-	sunDiscClamp();
+	
+	// skip the following. not physically-based
+	//sunDiscClamp();
 }
 
 void physicalSky::initSpectrums()
