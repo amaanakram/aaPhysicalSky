@@ -78,11 +78,11 @@ void physicalSun::sunInput(Real _turbidity, AtVector &_v_sunDir)
 		xyY _xyY = XYZtoxyY(_XYZ);
 		_xyY.Y *= 683.002;
 		xyYtoXYZ(_xyY, _XYZ);
-		sunLightCol = XYZtoRGB(_XYZ);
+		sunLightCol = XYZtoACEScg(_XYZ);
 
 		_xyY.Y /= sunSolidAngle;
 		xyYtoXYZ(_xyY, _XYZ);
-		sunDiscCol = XYZtoRGB(_XYZ);
+		sunDiscCol = XYZtoACEScg(_XYZ);
 	}
 }
 

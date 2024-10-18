@@ -83,15 +83,39 @@ struct alignas(BOUNDARY) xyz
 
 void clampRGB(AtRGB& dest)
 {
-	if(dest.r < aa_EPSILON)
+	if(dest.r < 1e-6)
 		dest.r = 0.0;
-	if(dest.g < aa_EPSILON)
+	if(dest.g < 1e-6)
 		dest.g = 0.0;
-	if(dest.b < aa_EPSILON)
+	if(dest.b < 1e-6)
 		dest.b = 0.0;
 }
 
-f_inline AtRGB XYZtoRGB(const XYZ &_XYZ)
+f_inline AtRGB XYZtoACEScg(const XYZ &_XYZ)
+{
+	// CIE  XYZ into RGB using sRGB primaries and D65 white point
+	// http://www.poynton.com/notes/colour_and_gamma/ColorFAQ.html
+	// see "How do I transform between CIE  XYZ and a particular set of RGB primaries?"
+	AtRGB dest;
+    dest.r =  1.6410234f * _XYZ.X - 0.3248033f * _XYZ.Y - 0.2364247f * _XYZ.Z;
+    dest.g = -0.6636629f * _XYZ.X + 1.6153316f * _XYZ.Y + 0.0167564f * _XYZ.Z;
+    dest.b =  0.0117219f * _XYZ.X - 0.0082844f * _XYZ.Y + 0.9883949f * _XYZ.Z;
+
+	clampRGB(dest);
+	return dest;
+}
+
+XYZ ACEScgtoXYZ(const AtRGB &_RGB)
+{
+    XYZ dest;
+    dest.X = 0.6624542f * _RGB.r + 0.1340042f * _RGB.g + 0.1561877f * _RGB.b;
+    dest.Y = 0.2722287f * _RGB.r + 0.6740818f * _RGB.g + 0.0536895f * _RGB.b;
+    dest.Z = -0.0055746f * _RGB.r + 0.0040607f * _RGB.g + 1.0103391f * _RGB.b;
+
+	return dest;
+}
+
+f_inline AtRGB XYZtosRGB(const XYZ &_XYZ)
 {
 	// CIE  XYZ into RGB using sRGB primaries and D65 white point
 	// http://www.poynton.com/notes/colour_and_gamma/ColorFAQ.html
@@ -105,7 +129,7 @@ f_inline AtRGB XYZtoRGB(const XYZ &_XYZ)
 	return dest;
 }
 
-XYZ RGBtoXYZ(AtRGB color)
+XYZ sRGBtoXYZ(AtRGB color)
 {
 	XYZ result;
 	result.X = 0.4124564 * color.r +  0.3575761 * color.g + 0.1804375 * color.b;
@@ -143,7 +167,8 @@ void xyYtoRGB( const xyY &src, AtRGB &dest)
 {
 	XYZ _XYZ;
 	xyYtoXYZ(src, _XYZ);
-	dest = XYZtoRGB(_XYZ);
+	//dest = XYZtoRGB(_XYZ);
+	dest = XYZtoACEScg(_XYZ);
 }
 
 xyz XYZtoxyz(XYZ& _XYZ)

@@ -282,7 +282,7 @@ void physicalSky::sunDiscClamp()
 	// convert solar radiance to xyY
 	xyY skySunSpotxyY = skySunSpot.toxyY();
 	// get xyY of attenuated sunlight
-	XYZ sunSpotXYZ = RGBtoXYZ(pSun.sunDiscCol);
+	XYZ sunSpotXYZ = ACEScgtoXYZ(pSun.sunDiscCol);
 	xyY sunSpotxyY = XYZtoxyY(sunSpotXYZ);
 	// clamp sun disc intensity to be at most 5 times brighter than sky
 	clamp(sunSpotxyY.Y, aa_EPSILON, skySunSpotxyY.Y * maxSunLuminosity);

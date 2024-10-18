@@ -391,7 +391,7 @@ f_inline xyY spectrum::toxyY()
 f_inline AtRGB spectrum::toRGB()
 {
 	XYZ _XYZ = toXYZ();
-	AtRGB result = XYZtoRGB(_XYZ);
+	AtRGB result = XYZtoACEScg(_XYZ);
 	return result;
 }
 

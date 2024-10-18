@@ -252,7 +252,7 @@ shader_evaluate
 	}
 	else
 	{
-		XYZ _XYZ = RGBtoXYZ(inScatterRGB);
+		XYZ _XYZ = ACEScgtoXYZ(inScatterRGB);
 		xyY _xyY = XYZtoxyY(_XYZ);
 		_xyY.x = skyPtr->overcastWhitePoint_D65_x;
 		_xyY.y = skyPtr->overcastWhitePoint_D65_x;
@@ -290,6 +290,7 @@ shader_evaluate
 	skyRadianceRGB = tonemap(skyRadianceRGB, AiShaderEvalParamFlt(p_tonemap));
 
 	sg->out.RGB() = skyRadianceRGB;
+	
 }
 
 node_finish

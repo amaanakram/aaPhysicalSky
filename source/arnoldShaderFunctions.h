@@ -104,7 +104,7 @@ f_inline AtRGB tonemap(AtRGB &inColor, Real t)
 		return inColor;
 	else
 	{
-		XYZ _XYZ = RGBtoXYZ(inColor);
+		XYZ _XYZ = ACEScgtoXYZ(inColor);
 		xyY _xyY = XYZtoxyY(_XYZ);
 
 		float ExposureBias = 2.0f;
