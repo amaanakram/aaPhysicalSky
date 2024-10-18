@@ -11,7 +11,7 @@ static Real netaLambdaTable[wavelengths][1801] =
 static void initNetaTable()
 {
     Real data[wavelengths];
-	#pragma omp parallel for private(data)
+	//#pragma omp parallel for private(data)
 	for(int i = 0; i < 1801; i++) 
 	{
 		for(int j = 0; j < wavelengths; j++) 

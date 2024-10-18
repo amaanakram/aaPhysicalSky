@@ -257,7 +257,7 @@ void physicalSky::reinit(Real turbidity, AtVector &sunDir)
 
 void physicalSky::initSpectrums()
 {
-#pragma omp parallel for
+	//#pragma omp parallel for
 	for (int i = 0; i <= nTheta; ++i)
 	{
 		for (int j = 0; j <= nPhi; ++j)
